@@ -1,0 +1,120 @@
+# Default values for rolling-upgrade.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+env: development
+namespace: default
+
+image:
+  repository: hello-world
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: latest
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: dummy.getphyllo.com
+      paths: ['/']
+
+autoscaling:
+  enabled: false
+  minReplicaCount: "1"
+  maxReplicaCount: "2"
+  datadog:
+    enabled: false
+    age: "60"
+    metricUnavailableValue: "0"
+    query: sum:trace.fastapi.request.hits{service:api-connect-internal,cluster_name:phyllo-prod}.as_count()
+    queryValue: "50"
+  prometheus:
+    enabled: false
+    metadata:
+      serverAddress: http://cubeapm.getphyllo.com:3130/api/metrics
+      query: |
+        sum(rate(cube_apm_calls_total{
+          service="tenant-api",
+          env="phyllo-prod",
+          root_name!="",
+          span_kind=~"server|consumer"
+        }[1m])) * 60
+      threshold: "50"
+      activationThreshold: "1"
+  cloudwatch:
+    enabled: false
+    expression: SELECT AVG(MessageCount) FROM SCHEMA("AWS/AmazonMQ", Broker,Queue,VirtualHost)
+        WHERE Broker = 'phyllo-prod-ha' AND VirtualHost = '/' AND Queue = 'crawler-main-queue'
+    metricCollectionTime: "180"
+    metricName: MessageCount
+    metricStat: Average
+    metricStatPeriod: "60"
+    minMetricValue: "3000"
+    namespace: AWS/AmazonMQ
+    targetMetricValue: "100"
+  rabbitmq:
+    enabled: false
+    metadata:
+      mode: QueueLength
+      protocol: auto
+      queueName: dummy-queue
+      value: '1'
+      vhostName: '/'
+
+strategy:
+  rollingUpdate:
+    maxSurge: 25%
+    maxUnavailable: 25%
+  type: RollingUpdate
+
+podAnnotations: {}
+
+keda:
+  enabled: false
+  cooldownPeriod: 30
+  minReplicaCount: 1
+  maxReplicaCount: 3
+  query: sum(increase(aws_amazonmq_message_count_sum{queue="crawler-main-queue"}[5m]))
+  thresholds:
+    aws_amazonmq_message_count_sum: "100"
+
+prometheus:
+  address: "http://prometheus-stack-prometheus.monitoring.svc.cluster.local:9090"
+
+containerPort: 8000
+
+probes:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  enabled: true
+  enable_limits: true
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 30m
+    memory: 100Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+configmap:
+  environment: {}
