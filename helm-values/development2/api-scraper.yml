@@ -4,8 +4,8 @@
 env: development2
 namespace: development2
 image:
-  repository: 540355450332.dkr.ecr.us-east-1.amazonaws.com/phyllo-api-scraper
-  tag: dev-DEVOPS-598-50b286f
+  repository: asia-southeast1-docker.pkg.dev/thematic-land-477215-a5/helm-demo-repo/myapp
+  tag: 0233a24
 nameOverride: "api-scraper"
 fullnameOverride: "api-scraper"
 resources:
