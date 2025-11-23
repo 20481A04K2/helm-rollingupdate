@@ -1,0 +1,33 @@
+{{- if .Values.ingress.enabled -}}
+{{- $svcName := .Values.nameOverride -}}
+{{- $svcPort := .Values.service.port -}}
+{{- $env := .Values.env -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.nameOverride }}-ingress
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+spec:
+  ingressClassName: nginx
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        {{- range .paths }}
+        - path: {{ . }}
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ $env }}-{{ $svcName }}
+              port:
+                number: {{ $svcPort }}
+        {{- end }}
+    {{- end }}
+{{- end }}
