@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.env }}-{{ include "rolling-upgrade.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "rolling-upgrade.labels" . | nindent 4 }}
+    tags.kubernetes.com/env: {{ .Values.env }}
+    tags.kubernetes.com/service: {{ .Values.nameOverride }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "rolling-upgrade.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "rolling-upgrade.selectorLabels" . | nindent 8 }}
+        tags.kubernetes.com/env: {{ .Values.env }}
+        tags.kubernetes.com/service: {{ .Values.nameOverride }}
+        tags.kubernetes.com/version: {{ .Values.image.tag | quote }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "rolling-upgrade.fullname" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          env:
+            - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+              value: http://otel-collector-deployment-opentelemetry-collector.monitoring.svc.cluster.local:4318/v1/traces
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: DD_TRACE_OTEL_ENABLED
+              value: "true"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: |
+                service.name={{ .Values.nameOverride }},
+                service.environment={{ .Values.env }},
+                service.version={{ .Values.image.tag | quote }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.env }}-{{ include "rolling-upgrade.fullname" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+          {{- if .Values.probes.enabled }}
+          readinessProbe:
+            {{- with .Values.probes.readinessProbe }}
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          livenessProbe:
+            {{- with .Values.probes.livenessProbe }}
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.resources.enabled }}
+          resources:
+            requests:
+              {{- toYaml .Values.resources.requests | nindent 14 }}
+            {{- if .Values.resources.enable_limits }}
+            limits:
+              {{- toYaml .Values.resources.limits | nindent 14 }}
+            {{- end }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
