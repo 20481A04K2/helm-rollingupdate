@@ -8,10 +8,10 @@ env: development
 namespace: default
 
 image:
-  repository: hello-world
+  repository: asia-southeast1-docker.pkg.dev/thematic-land-477215-a5/helm-demo-repo/myapp
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: latest
+  tag: 0233a24
 
 imagePullSecrets: []
 nameOverride: ""
