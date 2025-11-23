@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: phyllo-development2-api-scraper
+  namespace: argocd
+spec:
+  destination:
+    name: phyllo-development
+    namespace: development2
+  project: phyllo-dev2
+  syncPolicy:
+    automated:
+      selfHeal: true
+  source:
+    helm:
+      releaseName: api-scraper
+      valueFiles:
+      - /helm-values/development2/api-scraper.yml
+    path: rolling-upgrade/
+    repoURL: https://github.com/getphyllo/helm-charts.git
+    targetRevision: main
