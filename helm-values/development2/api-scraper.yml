@@ -1,0 +1,73 @@
+# Default values for rolling-upgrade.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+env: development2
+namespace: development2
+image:
+  repository: 540355450332.dkr.ecr.us-east-1.amazonaws.com/phyllo-api-scraper
+  tag: dev-DEVOPS-598-50b286f
+nameOverride: "api-scraper"
+fullnameOverride: "api-scraper"
+resources:
+  enabled: false
+configmap:
+  environment:
+    ENVIRONMENT: PRODUCTION
+    SERVICE_NAME: PHYLLO/INTERNAL_API_SCRAPER
+    THREAD_POOL_WORKER_COUNT: "10"
+    DEPLOYMENT_ENVIRONMENT: development2
+    JWT_SECRET_ID: dev2/common/JWT_SECRET_ID
+    CORE_DB_SECRET_ID: dev2/ac/CORE_DB_SECRET_ID
+    MQ_SECRET_ID: dev2/common/MQ_SECRET_ID
+    INTERNAL_API_KEYS_SECRET_ID: dev2/common/INTERNAL_API_KEYS_SECRET_ID
+    SLACK_SECRET_ID: dev2/common/SLACK_SECRET_ID
+    CACHE_SECRET_ID: dev2/common/CACHE_SECRET_ID
+    DATA_365_SECRET_ID: dev/common/DATA_365_SECRET_ID
+    IS_CACHE_ENABLED: "true"
+    SENTRY_SECRET_ID: ""
+    TIMEOUT_DURATION: "1500"
+    POOL_SIZE: "5"
+    MAX_OVERFLOW: "5"
+    POOL_PRE_PING: "true"
+    ECHO: "false"
+    POOL_RECYCLE_IN_SECONDS: "3600"
+    ECHO_POOL: "false"
+    POOL_RESET_ON_RETURN: "rollback"
+    POOL_TIMEOUT_IN_SECONDS: "30"
+    POOL: ~class:`~sqlalchemy.pool.QueuePool`
+    LOGSTASH_SERVER: localhost
+    LOGSTASH_PORT: "5000"
+    ACCESS_TOKEN_EXPIRE_MINUTES: "10080"
+    APP_URL: https://api2.dev.getphyllo.com
+    APP_INTERNAL_URL: http://development2-connect-api.development2.svc.cluster.local:80
+    BROWSER_SCRAPER_API_URL: http://development2-browser-scraper-api.development2.svc.cluster.local:8000
+    PUBLIC_SCRAPER_API_BASE_URL: http://development2-public-scraper-api.development2.svc.cluster.local:8000
+    WEBHOOK_MAIN_EXCHANGE: main.webhook.exchange
+    WEBHOOK_MAIN_QUEUE: webhook-main-queue
+    WEBHOOK_ANALYSIS_QUEUE: webhook-analysis-queue
+    CRAWLER_MAIN_EXCHANGE: crawler.webhook.exchange
+    CRAWLER_MAIN_QUEUE: crawler-main-queue
+    AUTHORIZATION_SESSION_EXCHANGE: authorization.session.exchange
+    AUTHORIZATION_SESSION_QUEUE: authorization-session
+    API_SCRAPER_MAIN_EXCHANGE: ""
+    API_SCRAPER_MAIN_QUEUE: api-scraper-main-queue
+    API_LOGIN_MAIN_EXCHANGE: ""
+    API_LOGIN_MAIN_QUEUE: api-login-main-queue
+    SPIDER_API_FILE_STORAGE_QUEUE: spider-api-file-storage
+    SPIDER_API_FILE_STORAGE_RETRY_1_QUEUE: spider-api-file-storage-retry-1
+    SPIDER_API_FILE_STORAGE_RETRY_2_QUEUE: spider-api-file-storage-retry-2
+    SPIDER_API_FILE_STORAGE_RETRY_3_QUEUE: spider-api-file-storage-retry-3
+    SPIDER_API_FILE_STORAGE_DLQ_QUEUE: spider-api-file-storage-dlq
+    SANDBOX_CONNECT_LOGIN_SCREEN_URL: https://connect-auth.sandbox.getphyllo.com
+    STATIC_FILES_S3_BUCKET: dev-connect-api-static-files
+    ENABLE_JSON_LOGGING: "false"
+    LOG_LEVEL: DEBUG
+    JOB_URL: http://development2-scheduler-api.development2.svc.cluster.local:8006/v1/scheduler/jobs
+    KMS_TOKEN_KEY_ID: 16c855a5-9311-40bd-8e00-69a1b73d603a
+    AWS_REGION: us-east-1
+    DD_REMOTE_CONFIGURATION_ENABLED: "false"
+    INFLUX_DB_ENABLED: 'false'
+    TENANT_APP_S3_BUCKET: tenant.dev.getphyllo.com
+    TENANT_LOGO_BASE_URL: https://tenant.dev.getphyllo.com/
+    MEDIA_RESOURCES_S3_BUCKET: media-resources.dev.getphyllo.com
+    INSIGHTIQ_BASE_URL: https://api2.dev.insightiq.ai
