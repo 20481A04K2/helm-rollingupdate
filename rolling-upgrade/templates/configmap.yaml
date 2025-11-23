@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.env }}-{{ include "rolling-upgrade.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "rolling-upgrade.labels" . | nindent 4 }}
+data:
+{{ toYaml .Values.configmap.environment | indent 2 }}
