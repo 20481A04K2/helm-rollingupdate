@@ -1,0 +1,51 @@
+{{- if .Values.autoscaling.enabled -}}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  labels:
+    scaledobject.keda.sh/name: {{ .Values.env }}-{{ include "rolling-upgrade.fullname" . }}-scaledobject
+  name: {{ .Values.env }}-{{ include "rolling-upgrade.fullname" . }}-scaledobject
+  namespace: {{ .Values.namespace }}
+spec:
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicaCount }}
+  minReplicaCount: {{ .Values.autoscaling.minReplicaCount }}
+  scaleTargetRef:
+    name: {{ .Values.env }}-{{ include "rolling-upgrade.fullname" . }}
+  triggers:
+  {{- if .Values.autoscaling.datadog.enabled }}
+  - authenticationRef:
+      name: keda-trigger-auth-datadog-secret
+    metadata:
+    {{- with .Values.autoscaling.datadog.metadata }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    metricType: Value
+    type: datadog
+  {{- end }}
+  {{- if .Values.autoscaling.prometheus.enabled }}
+  - metadata:
+    {{- with .Values.autoscaling.prometheus.metadata }}
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
+    type: prometheus
+  {{- end }}
+  {{- if .Values.autoscaling.cloudwatch.enabled }}
+  {{- range .Values.autoscaling.cloudwatch.metrics }}
+  - metadata:
+    {{- with .metadata }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    type: aws-cloudwatch
+  {{- end }}
+  {{- end }}
+  {{- if .Values.autoscaling.rabbitmq.enabled }}
+  - authenticationRef:
+      name: keda-trigger-auth-rabbitmq-secret
+      kind: ClusterTriggerAuthentication
+    metadata:
+    {{- with .Values.autoscaling.rabbitmq.metadata }}
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
+    type: rabbitmq
+  {{- end }}
+{{- end }}
